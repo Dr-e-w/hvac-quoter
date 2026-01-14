@@ -17,146 +17,90 @@
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-black text-blue-400 uppercase tracking-tighter">HVAC <span class="text-white font-light">PRICER</span></h1>
             <div class="flex items-center space-x-6">
-                <div class="flex flex-col items-end">
-                    <div id="db-status" class="text-[9px] uppercase font-bold px-2 py-0.5 rounded bg-red-500/20 text-red-400 mb-1">Connecting...</div>
-                    <div class="text-[8px] text-slate-500 uppercase font-mono italic">Raw Protocol: v2.0</div>
-                </div>
+                <div id="db-status" class="text-[9px] uppercase font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">Google Cloud Ready</div>
                 <div class="space-x-6 text-xs font-bold uppercase tracking-widest border-l border-slate-700 pl-6">
-                    <button onclick="showPage('builder')" class="hover:text-blue-400">New Quote</button>
-                    <button onclick="showPage('history')" class="hover:text-blue-400">Office Logs</button>
+                    <button class="text-blue-400">New Quote</button>
                 </div>
             </div>
         </div>
     </nav>
 
     <main class="max-w-5xl mx-auto p-4">
-        <div id="page-builder" class="page">
-            <div id="printable-area" class="bg-white shadow-xl rounded-xl p-8 border border-slate-200">
-                <div class="flex justify-between items-start border-b-2 border-slate-100 pb-6 mb-6">
-                    <div>
-                        <h2 class="text-3xl font-bold text-slate-800 uppercase tracking-tight italic">PROPOSAL</h2>
-                        <input type="text" id="cust-name" placeholder="Customer Name" class="block w-full mt-4 text-xl font-semibold border-b border-transparent focus:border-blue-500 outline-none">
-                        <input type="text" id="cust-addr" placeholder="Service Address" class="block w-full text-slate-500 border-b border-transparent focus:border-blue-500 outline-none mt-1">
-                    </div>
-                    <div class="text-right text-sm text-slate-400 font-mono">
-                        <p id="quote-date"></p>
-                    </div>
+        <div class="bg-white shadow-xl rounded-xl p-8 border border-slate-200" id="printable-area">
+            <div class="flex justify-between items-start border-b-2 border-slate-100 pb-6 mb-6">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 uppercase tracking-tight italic">PROPOSAL</h2>
+                    <input type="text" id="cust-name" placeholder="Customer Name" class="block w-full mt-4 text-xl font-semibold border-b border-transparent focus:border-blue-500 outline-none">
+                    <input type="text" id="cust-addr" placeholder="Service Address" class="block w-full text-slate-500 border-b border-transparent focus:border-blue-500 outline-none mt-1">
                 </div>
-
-                <div class="no-print bg-slate-100 p-6 rounded-lg mb-8 border border-slate-200">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
-                            <select id="cat-select" onchange="updateItems()" class="w-full p-2 border rounded shadow-sm bg-white"></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Catalog Item</label>
-                            <select id="item-select" class="w-full p-2 border rounded shadow-sm bg-white"></select>
-                        </div>
-                        <button onclick="addItem()" class="bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 transition">Add Item</button>
-                    </div>
-                    
-                    <div class="border-t border-slate-200 pt-4 flex flex-col md:flex-row gap-4 items-end">
-                        <div class="flex-grow">
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Custom Description</label>
-                            <input type="text" id="custom-name" placeholder="e.g. 3/4 inch Copper Elbow" class="w-full p-2 border rounded shadow-sm bg-white">
-                        </div>
-                        <div class="w-32">
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Price ($)</label>
-                            <input type="number" id="custom-price" placeholder="0.00" class="w-full p-2 border rounded shadow-sm bg-white">
-                        </div>
-                        <button onclick="addCustomItem()" class="bg-slate-700 text-white py-2 px-6 rounded font-bold hover:bg-slate-800 transition">Add Custom</button>
-                    </div>
-                </div>
-
-                <table class="w-full mb-8">
-                    <thead class="border-b-2 border-slate-800 text-xs uppercase font-black text-slate-600">
-                        <tr>
-                            <th class="text-left py-3">Description</th>
-                            <th class="text-center py-3">Price</th>
-                            <th class="text-center py-3">Qty</th>
-                            <th class="text-right py-3">Total</th>
-                            <th class="no-print"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="quote-tbody" class="divide-y divide-slate-100"></tbody>
-                </table>
-
-                <div class="flex justify-end border-t border-slate-100 pt-6">
-                    <div class="w-72 space-y-3">
-                        <div class="flex justify-between text-slate-500 no-print text-sm">
-                            <span>Labor Fee ($)</span>
-                            <input type="number" id="labor-fee" value="0" oninput="calcTotal()" class="w-24 text-right border rounded p-1">
-                        </div>
-                        <div class="flex justify-between text-slate-500 no-print text-sm">
-                            <span>Markup %</span>
-                            <input type="number" id="markup-pct" value="20" oninput="calcTotal()" class="w-24 text-right border rounded p-1">
-                        </div>
-                        <div class="flex justify-between font-bold text-2xl pt-2 border-t-2 border-slate-900 mt-2">
-                            <span class="text-slate-600 uppercase text-xs self-center">Investment Total</span>
-                            <span id="grand-total" class="text-blue-700">$0.00</span>
-                        </div>
-                    </div>
+                <div class="text-right text-sm text-slate-400 font-mono">
+                    <p id="quote-date"></p>
                 </div>
             </div>
 
-            <div class="mt-8 flex flex-col md:flex-row justify-end gap-4 no-print">
-                <button onclick="generatePDF()" class="bg-slate-800 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-slate-700 transition flex-grow md:flex-grow-0">Download PDF</button>
-                <button onclick="saveToCloud()" id="sync-btn" class="bg-green-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-green-700 transition flex-grow md:flex-grow-0">Sync to Office Logs</button>
+            <div class="no-print bg-slate-100 p-6 rounded-lg mb-8 border border-slate-200">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Catalog Item</label>
+                        <select id="item-select" class="w-full p-2 border rounded shadow-sm bg-white"></select>
+                    </div>
+                    <button onclick="addItem()" class="bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 transition">Add Item</button>
+                </div>
+            </div>
+
+            <table class="w-full mb-8">
+                <thead class="border-b-2 border-slate-800 text-xs uppercase font-black text-slate-600">
+                    <tr>
+                        <th class="text-left py-3">Description</th>
+                        <th class="text-center py-3">Price</th>
+                        <th class="text-center py-3">Qty</th>
+                        <th class="text-right py-3">Total</th>
+                        <th class="no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="quote-tbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+
+            <div class="flex justify-end border-t border-slate-100 pt-6">
+                <div class="w-72 space-y-3">
+                    <div class="flex justify-between text-slate-500 no-print text-sm">
+                        <span>Labor Fee ($)</span>
+                        <input type="number" id="labor-fee" value="0" oninput="calcTotal()" class="w-24 text-right border rounded p-1">
+                    </div>
+                    <div class="flex justify-between text-slate-500 no-print text-sm">
+                        <span>Markup %</span>
+                        <input type="number" id="markup-pct" value="20" oninput="calcTotal()" class="w-24 text-right border rounded p-1">
+                    </div>
+                    <div class="flex justify-between font-bold text-2xl pt-2 border-t-2 border-slate-900 mt-2">
+                        <span class="text-slate-600 uppercase text-xs self-center">Total</span>
+                        <span id="grand-total" class="text-blue-700">$0.00</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div id="page-history" class="page hidden">
-            <h2 class="text-2xl font-bold mb-6 text-slate-800 italic">Cloud History</h2>
-            <div id="history-list" class="space-y-4"></div>
+        <div class="mt-8 flex flex-col md:flex-row justify-end gap-4 no-print">
+            <button onclick="generatePDF()" class="bg-slate-800 text-white px-8 py-4 rounded-xl font-bold hover:bg-slate-700 transition flex-grow md:flex-grow-0">Download PDF</button>
+            <button onclick="saveToCloud()" id="sync-btn" class="bg-green-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-green-700 transition flex-grow md:flex-grow-0">Sync to Office Logs</button>
         </div>
     </main>
 
     <script>
-        // CONFIGURATION - HARDCODED
-        const SUPABASE_URL = 'https://khjxctdbadvaybdrcxm.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtoanh6Y3RkYmFkdmF5YmRyY3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzOTA4MjIsImV4cCI6MjA4Mzk2NjgyMn0.RmCZR8_D1fuHPBwj2riOd_J5Jx-OQcmOuYW287-s8xs';
+        // YOUR UNIQUE GOOGLE WEB APP URL
+        const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwwPmfzN-P8oRbBaZe0I0u_CqtHP8kGHIQEOqkQflkK4jnEHPH-r30aDF7tbpR7Epi_/exec';
 
         let quoteItems = [];
         const catalog = [
-            { cat: "Furnace", name: "80% AFUE Gas Furnace", price: 2800 },
-            { cat: "Furnace", name: "96% AFUE High-Efficiency", price: 3900 },
-            { cat: "IAQ", name: "Whole-Home Humidifier", price: 750 },
-            { cat: "Materials", name: "Line Set (Standard)", price: 250 },
-            { cat: "Mini-Split", name: "12k BTU Single Zone", price: 3200 }
+            { name: "80% AFUE Gas Furnace", price: 2800 },
+            { name: "96% AFUE High-Efficiency", price: 3900 },
+            { name: "Whole-Home Humidifier", price: 750 },
+            { name: "Line Set (Standard)", price: 250 },
+            { name: "12k BTU Mini-Split", price: 3200 }
         ];
-
-        // DIRECT PROTOCOL CHECK
-        async function checkConnection() {
-            const statusEl = document.getElementById('db-status');
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/hvac_quotes?select=id&limit=1`, {
-                    headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-                });
-                if (response.ok) {
-                    statusEl.innerText = "Database Online";
-                    statusEl.className = "text-[9px] uppercase font-bold px-2 py-0.5 rounded bg-green-500/20 text-green-400 mb-1";
-                } else {
-                    throw new Error(response.status);
-                }
-            } catch (e) {
-                statusEl.innerText = "Connection Blocked";
-                console.error("Connection Check Failed:", e);
-            }
-        }
 
         function init() {
             document.getElementById('quote-date').innerText = new Date().toLocaleDateString();
-            const cats = [...new Set(catalog.map(i => i.cat))];
-            document.getElementById('cat-select').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-            updateItems();
-            checkConnection();
-        }
-
-        function updateItems() {
-            const cat = document.getElementById('cat-select').value;
-            const items = catalog.filter(i => i.cat === cat);
-            document.getElementById('item-select').innerHTML = items.map(i => `<option value='${JSON.stringify(i)}'>${i.name} ($${i.price})</option>`).join('');
+            document.getElementById('item-select').innerHTML = catalog.map(i => `<option value='${JSON.stringify(i)}'>${i.name} ($${i.price})</option>`).join('');
         }
 
         function addItem() {
@@ -165,21 +109,11 @@
             render();
         }
 
-        function addCustomItem() {
-            const name = document.getElementById('custom-name').value;
-            const price = parseFloat(document.getElementById('custom-price').value);
-            if(!name || isNaN(price)) return alert("Missing name or price.");
-            quoteItems.push({ cat: "Custom", name, price, qty: 1 });
-            document.getElementById('custom-name').value = '';
-            document.getElementById('custom-price').value = '';
-            render();
-        }
-
         function render() {
             const body = document.getElementById('quote-tbody');
             body.innerHTML = quoteItems.map((item, idx) => `
                 <tr class="border-b border-slate-50">
-                    <td class="py-4 font-medium">${item.name} <span class="text-[9px] uppercase text-slate-400 block">${item.cat}</span></td>
+                    <td class="py-4 font-medium">${item.name}</td>
                     <td class="text-center font-mono text-sm">$${item.price.toFixed(2)}</td>
                     <td class="text-center"><input type="number" value="${item.qty}" onchange="updateQty(${idx}, this.value)" class="w-12 text-center border rounded"></td>
                     <td class="text-right font-bold text-slate-700">$${(item.price * item.qty).toFixed(2)}</td>
@@ -209,54 +143,27 @@
             btn.innerText = "Syncing...";
             btn.disabled = true;
 
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/hvac_quotes`, {
-                    method: 'POST',
-                    headers: { 
-                        "apikey": SUPABASE_KEY, 
-                        "Authorization": `Bearer ${SUPABASE_KEY}`,
-                        "Content-Type": "application/json",
-                        "Prefer": "return=minimal"
-                    },
-                    body: JSON.stringify({
-                        customer_name: customer,
-                        address: document.getElementById('cust-addr').value,
-                        total_price: calcTotal(),
-                        items: quoteItems
-                    })
-                });
+            const payload = {
+                customer_name: customer,
+                address: document.getElementById('cust-addr').value,
+                total_price: calcTotal(),
+                markup_pct: document.getElementById('markup-pct').value,
+                labor_fee: document.getElementById('labor-fee').value
+            };
 
-                if (response.ok) {
-                    alert("Quote Synced Successfully!");
-                } else {
-                    const err = await response.json();
-                    throw new Error(err.message);
-                }
+            try {
+                // 'no-cors' mode ensures it bypasses security blocks
+                await fetch(GOOGLE_SHEET_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    body: JSON.stringify(payload)
+                });
+                alert("Quote Synced to Office Logs!");
             } catch (err) {
-                alert("Detailed Error: " + err.message);
+                alert("Error: " + err.message);
             } finally {
                 btn.innerText = "Sync to Office Logs";
                 btn.disabled = false;
-            }
-        }
-
-        async function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-            document.getElementById('page-'+id).classList.remove('hidden');
-            if(id === 'history') {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/hvac_quotes?select=*&order=created_at.desc`, {
-                    headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-                });
-                const data = await response.json();
-                document.getElementById('history-list').innerHTML = data.map(q => `
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 flex justify-between items-center">
-                        <div>
-                            <p class="text-[9px] font-bold text-blue-500 uppercase">${new Date(q.created_at).toLocaleString()}</p>
-                            <h3 class="font-bold text-slate-800">${q.customer_name}</h3>
-                        </div>
-                        <p class="text-xl font-black text-slate-900">$${parseFloat(q.total_price).toLocaleString()}</p>
-                    </div>
-                `).join('');
             }
         }
 
