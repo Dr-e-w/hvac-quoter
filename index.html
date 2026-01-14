@@ -16,11 +16,8 @@
     <nav class="bg-slate-900 text-white p-4 no-print shadow-md mb-8">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-black text-blue-400 uppercase tracking-tighter">HVAC <span class="text-white font-light">PRICER</span></h1>
-            <div class="flex items-center space-x-6">
-                <div id="db-status" class="text-[9px] uppercase font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">Google Cloud Ready</div>
-                <div class="space-x-6 text-xs font-bold uppercase tracking-widest border-l border-slate-700 pl-6">
-                    <button class="text-blue-400">New Quote</button>
-                </div>
+            <div class="flex items-center space-x-6 text-[9px] uppercase font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">
+                Google Cloud Ready
             </div>
         </div>
     </nav>
@@ -29,22 +26,30 @@
         <div class="bg-white shadow-xl rounded-xl p-8 border border-slate-200" id="printable-area">
             <div class="flex justify-between items-start border-b-2 border-slate-100 pb-6 mb-6">
                 <div>
-                    <h2 class="text-3xl font-bold text-slate-800 uppercase tracking-tight italic">PROPOSAL</h2>
+                    <h2 class="text-3xl font-bold text-slate-800 uppercase italic">PROPOSAL</h2>
                     <input type="text" id="cust-name" placeholder="Customer Name" class="block w-full mt-4 text-xl font-semibold border-b border-transparent focus:border-blue-500 outline-none">
                     <input type="text" id="cust-addr" placeholder="Service Address" class="block w-full text-slate-500 border-b border-transparent focus:border-blue-500 outline-none mt-1">
                 </div>
-                <div class="text-right text-sm text-slate-400 font-mono">
-                    <p id="quote-date"></p>
-                </div>
+                <div class="text-right text-sm text-slate-400 font-mono" id="quote-date"></div>
             </div>
 
             <div class="no-print bg-slate-100 p-6 rounded-lg mb-8 border border-slate-200">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Catalog Item</label>
-                        <select id="item-select" class="w-full p-2 border rounded shadow-sm bg-white"></select>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-500 uppercase">Preset Library</label>
+                        <div class="flex gap-2">
+                            <select id="item-select" class="flex-grow p-2 border rounded bg-white"></select>
+                            <button onclick="addItem()" class="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700">Add</button>
+                        </div>
                     </div>
-                    <button onclick="addItem()" class="bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 transition">Add Item</button>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-500 uppercase text-blue-600">Add Custom Equipment/Material</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="custom-name" placeholder="Item Name" class="flex-grow p-2 border rounded">
+                            <input type="number" id="custom-price" placeholder="$" class="w-20 p-2 border rounded text-right">
+                            <button onclick="addCustom()" class="bg-slate-700 text-white px-4 py-2 rounded font-bold hover:bg-slate-800">Add</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -80,13 +85,12 @@
         </div>
 
         <div class="mt-8 flex flex-col md:flex-row justify-end gap-4 no-print">
-            <button onclick="generatePDF()" class="bg-slate-800 text-white px-8 py-4 rounded-xl font-bold hover:bg-slate-700 transition flex-grow md:flex-grow-0">Download PDF</button>
+            <button onclick="generatePDF()" class="bg-slate-800 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-slate-700 transition flex-grow md:flex-grow-0">Download PDF</button>
             <button onclick="saveToCloud()" id="sync-btn" class="bg-green-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-green-700 transition flex-grow md:flex-grow-0">Sync to Office Logs</button>
         </div>
     </main>
 
     <script>
-        // YOUR UNIQUE GOOGLE WEB APP URL
         const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwwPmfzN-P8oRbBaZe0I0u_CqtHP8kGHIQEOqkQflkK4jnEHPH-r30aDF7tbpR7Epi_/exec';
 
         let quoteItems = [];
@@ -94,8 +98,8 @@
             { name: "80% AFUE Gas Furnace", price: 2800 },
             { name: "96% AFUE High-Efficiency", price: 3900 },
             { name: "Whole-Home Humidifier", price: 750 },
-            { name: "Line Set (Standard)", price: 250 },
-            { name: "12k BTU Mini-Split", price: 3200 }
+            { name: "12k BTU Mini-Split", price: 3200 },
+            { name: "Line Set (Standard)", price: 250 }
         ];
 
         function init() {
@@ -109,6 +113,16 @@
             render();
         }
 
+        function addCustom() {
+            const name = document.getElementById('custom-name').value;
+            const price = parseFloat(document.getElementById('custom-price').value);
+            if(!name || isNaN(price)) return alert("Enter item name and price.");
+            quoteItems.push({ name: name, price: price, qty: 1 });
+            document.getElementById('custom-name').value = '';
+            document.getElementById('custom-price').value = '';
+            render();
+        }
+
         function render() {
             const body = document.getElementById('quote-tbody');
             body.innerHTML = quoteItems.map((item, idx) => `
@@ -117,7 +131,7 @@
                     <td class="text-center font-mono text-sm">$${item.price.toFixed(2)}</td>
                     <td class="text-center"><input type="number" value="${item.qty}" onchange="updateQty(${idx}, this.value)" class="w-12 text-center border rounded"></td>
                     <td class="text-right font-bold text-slate-700">$${(item.price * item.qty).toFixed(2)}</td>
-                    <td class="no-print text-right"><button onclick="remove(${idx})" class="text-slate-300 hover:text-red-500 px-2">✕</button></td>
+                    <td class="no-print text-right pl-2"><button onclick="remove(${idx})" class="text-slate-300 hover:text-red-500 px-2">✕</button></td>
                 </tr>
             `).join('');
             calcTotal();
@@ -143,24 +157,26 @@
             btn.innerText = "Syncing...";
             btn.disabled = true;
 
+            const summary = quoteItems.map(i => `${i.name} (x${i.qty})`).join(', ');
+
             const payload = {
                 customer_name: customer,
                 address: document.getElementById('cust-addr').value,
                 total_price: calcTotal(),
                 markup_pct: document.getElementById('markup-pct').value,
-                labor_fee: document.getElementById('labor-fee').value
+                labor_fee: document.getElementById('labor-fee').value,
+                item_summary: summary
             };
 
             try {
-                // 'no-cors' mode ensures it bypasses security blocks
                 await fetch(GOOGLE_SHEET_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
                     body: JSON.stringify(payload)
                 });
-                alert("Quote Synced to Office Logs!");
+                alert("Quote successfully sent to Hagerstown Office Logs!");
             } catch (err) {
-                alert("Error: " + err.message);
+                alert("Sync error: " + err.message);
             } finally {
                 btn.innerText = "Sync to Office Logs";
                 btn.disabled = false;
