@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HVAC Tactical Pricer | Hagerstown HQ</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .card-shadow { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        /* Hide the proposal template from the web UI */
+        #proposal-template { display: none; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen pb-12 font-sans">
@@ -87,19 +90,65 @@
                 <p class="text-blue-300 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Total Quoted Price</p>
                 <div class="text-5xl font-black text-white mb-8 tracking-tighter">$<span id="displayTotal">0.00</span></div>
                 
-                <button type="submit" id="submitBtn" class="w-full bg-blue-500 hover:bg-blue-400 text-white font-black py-5 rounded-2xl transition-all shadow-lg uppercase tracking-widest text-sm">
-                    Confirm & Sync to HQ Logs
-                </button>
+                <div class="flex flex-col gap-3">
+                    <button type="submit" id="submitBtn" class="w-full bg-blue-500 hover:bg-blue-400 text-white font-black py-5 rounded-2xl transition-all shadow-lg uppercase tracking-widest text-sm">
+                        Confirm & Sync to HQ Logs
+                    </button>
+                    <button type="button" onclick="generatePDF()" class="w-full bg-white hover:bg-gray-100 text-blue-900 font-black py-4 rounded-2xl transition-all border-b-4 border-gray-300 uppercase tracking-widest text-xs">
+                        Download PDF Proposal
+                    </button>
+                </div>
             </div>
         </form>
     </main>
+
+    <div id="proposal-template" class="p-10 bg-white text-gray-800">
+        <div class="flex justify-between items-start border-b-2 border-blue-900 pb-6 mb-8">
+            <div>
+                <h1 class="text-3xl font-black text-blue-900 italic">HAGERSTOWN HEATING & COOLING</h1>
+                <p class="text-sm font-bold text-gray-500">Official Equipment Proposal</p>
+            </div>
+            <div class="text-right text-xs">
+                <p id="pdf-date"></p>
+                <p>Hagerstown, MD</p>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-xs font-black uppercase text-blue-900 mb-2">Customer Information</h3>
+            <p class="text-lg font-bold" id="pdf-customer"></p>
+            <p class="text-sm text-gray-600" id="pdf-address"></p>
+        </div>
+
+        <table class="w-full mb-12">
+            <thead>
+                <tr class="bg-gray-100 text-left text-[10px] uppercase font-black tracking-widest">
+                    <th class="p-3">Description</th>
+                    <th class="p-3 text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                <tr class="border-b">
+                    <td class="p-3">
+                        <p class="font-bold" id="pdf-equipment"></p>
+                        <p class="text-xs text-gray-500 italic" id="pdf-custom-note"></p>
+                    </td>
+                    <td class="p-3 text-right font-bold" id="pdf-total"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+            <p class="text-[10px] font-black uppercase text-blue-900 mb-1">Standard Terms</p>
+            <p class="text-[9px] text-gray-600 leading-relaxed">Proposal valid for 30 days. Includes standard installation and removal of existing equipment unless otherwise noted. Permits and electrical upgrades may incur additional charges.</p>
+        </div>
+    </div>
 
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwwPmfzN-P8oRbBaZe0I0u_CqtHP8kGHIQEOqkQflkK4jnEHPH-r30aDF7tbpR7Epi_/exec';
 
         function toggleCustom() {
-            const area = document.getElementById('customArea');
-            area.classList.toggle('hidden');
+            document.getElementById('customArea').classList.toggle('hidden');
         }
 
         function updateMath() {
@@ -109,11 +158,38 @@
             const marginPercent = parseFloat(document.getElementById('margin').value) || 0;
 
             const subtotal = base + custom + labor;
-            // Standard HVAC Margin Calculation: Cost / (1 - Margin%)
             const total = marginPercent > 0 && marginPercent < 100 ? subtotal / (1 - (marginPercent / 100)) : subtotal;
 
             document.getElementById('displayTotal').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             return total.toFixed(2);
+        }
+
+        function generatePDF() {
+            const customer = document.getElementById('customerName').value;
+            if(!customer) { alert("Enter Customer Name first"); return; }
+
+            // Fill Template
+            document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
+            document.getElementById('pdf-customer').innerText = customer;
+            document.getElementById('pdf-address').innerText = document.getElementById('address').value;
+            document.getElementById('pdf-equipment').innerText = document.getElementById('baseEquipment').options[document.getElementById('baseEquipment').selectedIndex].text;
+            document.getElementById('pdf-custom-note').innerText = document.getElementById('customDesc').value ? "Includes: " + document.getElementById('customDesc').value : "";
+            document.getElementById('pdf-total').innerText = "$" + document.getElementById('displayTotal').innerText;
+
+            const element = document.getElementById('proposal-template');
+            element.style.display = 'block'; // Temporarily show to capture
+
+            const opt = {
+                margin: 0.5,
+                filename: `Proposal_${customer.replace(/\s+/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.style.display = 'none'; // Re-hide
+            });
         }
 
         document.getElementById('quoteForm').addEventListener('submit', async (e) => {
@@ -135,14 +211,7 @@
             };
 
             try {
-                // Fetch to Google Apps Script
-                await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    cache: 'no-cache',
-                    body: JSON.stringify(payload)
-                });
-
+                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', cache: 'no-cache', body: JSON.stringify(payload) });
                 alert("SYNC SUCCESSFUL: Data added to HQ Logs.");
                 document.getElementById('quoteForm').reset();
                 updateMath();
