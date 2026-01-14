@@ -16,9 +16,7 @@
     <nav class="bg-slate-900 text-white p-4 no-print shadow-md mb-8">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-black text-blue-400 uppercase tracking-tighter">HVAC <span class="text-white font-light">PRICER</span></h1>
-            <div class="flex items-center space-x-6 text-[9px] uppercase font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">
-                Google Cloud Ready
-            </div>
+            <div id="db-status" class="text-[9px] uppercase font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">Google Cloud Ready</div>
         </div>
     </nav>
 
@@ -43,7 +41,7 @@
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <label class="block text-xs font-bold text-slate-500 uppercase text-blue-600">Add Custom Equipment/Material</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase text-blue-600">Custom Equipment/Material</label>
                         <div class="flex gap-2">
                             <input type="text" id="custom-name" placeholder="Item Name" class="flex-grow p-2 border rounded">
                             <input type="number" id="custom-price" placeholder="$" class="w-20 p-2 border rounded text-right">
@@ -77,7 +75,7 @@
                         <input type="number" id="markup-pct" value="20" oninput="calcTotal()" class="w-24 text-right border rounded p-1">
                     </div>
                     <div class="flex justify-between font-bold text-2xl pt-2 border-t-2 border-slate-900 mt-2">
-                        <span class="text-slate-600 uppercase text-xs self-center">Total</span>
+                        <span class="text-slate-600 uppercase text-xs self-center">Investment Total</span>
                         <span id="grand-total" class="text-blue-700">$0.00</span>
                     </div>
                 </div>
@@ -145,7 +143,8 @@
             const labor = parseFloat(document.getElementById('labor-fee').value) || 0;
             const markup = parseFloat(document.getElementById('markup-pct').value) || 0;
             const total = (sub + labor) * (1 + (markup / 100));
-            document.getElementById('grand-total').innerText = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            const displayTotal = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            document.getElementById('grand-total').innerText = displayTotal;
             return total;
         }
 
@@ -157,7 +156,7 @@
             btn.innerText = "Syncing...";
             btn.disabled = true;
 
-            const summary = quoteItems.map(i => `${i.name} (x${i.qty})`).join(', ');
+            const itemSummary = quoteItems.map(i => `${i.name} (x${i.qty})`).join(' | ');
 
             const payload = {
                 customer_name: customer,
@@ -165,7 +164,7 @@
                 total_price: calcTotal(),
                 markup_pct: document.getElementById('markup-pct').value,
                 labor_fee: document.getElementById('labor-fee').value,
-                item_summary: summary
+                item_summary: itemSummary
             };
 
             try {
